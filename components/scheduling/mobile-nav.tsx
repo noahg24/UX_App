@@ -1,9 +1,10 @@
 "use client"
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ViewType } from "@/app/page"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 interface MobileNavProps {
   currentView: ViewType
@@ -36,6 +37,9 @@ export function MobileNav({
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 bg-sidebar p-0">
+          <VisuallyHidden>
+            <SheetTitle>Navigation Menu</SheetTitle>
+          </VisuallyHidden>
           <MobileSidebarContent
             currentView={currentView}
             onNavigate={(view) => {

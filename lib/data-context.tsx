@@ -25,6 +25,7 @@ export interface Session {
   time: string
   duration: string
   type: string
+  address: string
   status: "confirmed" | "pending" | "completed" | "cancelled"
   notes: string
   plannedActivities: Activity[]
@@ -175,6 +176,7 @@ const defaultSessions: Session[] = [
     time: "9:00 AM",
     duration: "45 min",
     type: "Speech Therapy",
+    address: "Tampa Bay Elementary, 1200 Palm Ave, Tampa, FL 33602",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -192,6 +194,7 @@ const defaultSessions: Session[] = [
     time: "10:30 AM",
     duration: "30 min",
     type: "Language Development",
+    address: "Sunshine Learning Center, 455 Oak St, Tampa, FL 33603",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -208,6 +211,7 @@ const defaultSessions: Session[] = [
     time: "1:00 PM",
     duration: "60 min",
     type: "Assessment",
+    address: "Westshore Pediatric Clinic, 2201 Westshore Blvd, Tampa, FL 33607",
     status: "pending",
     notes: "",
     plannedActivities: [
@@ -225,6 +229,7 @@ const defaultSessions: Session[] = [
     time: "3:00 PM",
     duration: "45 min",
     type: "Speech Therapy",
+    address: "North Tampa Therapy Hub, 7802 Fletcher Ave, Tampa, FL 33637",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -241,6 +246,7 @@ const defaultSessions: Session[] = [
     time: "9:30 AM",
     duration: "45 min",
     type: "Speech Therapy",
+    address: "Harborview Elementary, 310 Bayshore Dr, Tampa, FL 33606",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -257,6 +263,7 @@ const defaultSessions: Session[] = [
     time: "10:00 AM",
     duration: "30 min",
     type: "Speech Therapy",
+    address: "South Tampa Voice Center, 1508 S Dale Mabry Hwy, Tampa, FL 33629",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -272,6 +279,7 @@ const defaultSessions: Session[] = [
     time: "9:00 AM",
     duration: "45 min",
     type: "Speech Therapy",
+    address: "Tampa Bay Elementary, 1200 Palm Ave, Tampa, FL 33602",
     status: "confirmed",
     notes: "",
     plannedActivities: [
@@ -288,6 +296,7 @@ const defaultSessions: Session[] = [
     time: "9:00 AM",
     duration: "45 min",
     type: "Speech Therapy",
+    address: "Tampa Bay Elementary, 1200 Palm Ave, Tampa, FL 33602",
     status: "completed",
     notes: "Great progress on 'r' sounds today. Emma successfully produced the sound in isolation and in simple words.",
     plannedActivities: [
@@ -304,6 +313,7 @@ const defaultSessions: Session[] = [
     time: "10:00 AM",
     duration: "30 min",
     type: "Language Development",
+    address: "Sunshine Learning Center, 455 Oak St, Tampa, FL 33603",
     status: "completed",
     notes: "Introduced new vocabulary set: household items. Lucas demonstrated good retention.",
     plannedActivities: [
@@ -320,6 +330,7 @@ const defaultSessions: Session[] = [
     time: "3:00 PM",
     duration: "60 min",
     type: "Assessment",
+    address: "Children's Evaluation Center, 901 River Ave, Tampa, FL 33602",
     status: "completed",
     notes: "Completed initial assessment. Results indicate phonological disorder affecting consonant clusters.",
     plannedActivities: [

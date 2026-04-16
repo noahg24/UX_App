@@ -34,6 +34,7 @@ export function CalendarView() {
   const [view, setView] = useState<"month" | "week" | "day">("month")
   const [selectedDay, setSelectedDay] = useState<Date>(new Date(2026, 3, 14))
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false)
+  const [isOptimizeOpen, setIsOptimizeOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [sessionNotes, setSessionNotes] = useState("")
   const [activities, setActivities] = useState<Session["plannedActivities"]>([])
@@ -44,6 +45,7 @@ export function CalendarView() {
     time: "",
     duration: "45",
     type: "Speech Therapy",
+    address: "",
     activities: [] as string[],
   })
 
@@ -158,6 +160,7 @@ export function CalendarView() {
         time: newSession.time,
         duration: `${newSession.duration} min`,
         type: newSession.type,
+        address: newSession.address,
         status: "confirmed",
         notes: "",
         plannedActivities: newSession.activities.map((name, idx) => ({
@@ -172,6 +175,7 @@ export function CalendarView() {
         time: "",
         duration: "45",
         type: "Speech Therapy",
+        address: "",
         activities: [],
       })
       setIsAddSessionOpen(false)
@@ -239,6 +243,13 @@ export function CalendarView() {
               Day
             </Button>
           </div>
+          <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsOptimizeOpen(true)}
+            >
+              Optimize
+            </Button>
           <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
@@ -294,6 +305,18 @@ export function CalendarView() {
                       }
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Address</Label>
+                    <Input
+                      id="address"
+                      type="text"
+                      placeholder="Enter session address"
+                      value={newSession.address}
+                      onChange={(e) =>
+                        setNewSession({ ...newSession, address: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Session Type</Label>
@@ -313,6 +336,18 @@ export function CalendarView() {
                       <SelectItem value="Follow-up">Follow-up</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    type="text"
+                    placeholder="Enter session address"
+                    value={newSession.address}
+                    onChange={(e) =>
+                      setNewSession({ ...newSession, address: e.target.value })
+                    }
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration</Label>
@@ -358,9 +393,27 @@ export function CalendarView() {
                 <Button 
                   className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
                   onClick={handleAddSession}
-                  disabled={!newSession.clientId || !newSession.date || !newSession.time}
+                  disabled={!newSession.clientId || !newSession.date || !newSession.time || !newSession.address}
                 >
                   Schedule Session
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isOptimizeOpen} onOpenChange={setIsOptimizeOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Optimize Schedule</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <p className="text-sm text-muted-foreground">
+                  This feature is under construction.
+                </p>
+                <Button
+                  className="w-full"
+                  onClick={() => setIsOptimizeOpen(false)}
+                >
+                  Close
                 </Button>
               </div>
             </DialogContent>
@@ -581,6 +634,9 @@ export function CalendarView() {
                     <p className="text-xs text-muted-foreground">
                       {session.type} · {session.duration}
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      {session.address}
+                    </p>
                     {session.plannedActivities.length > 0 && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {session.plannedActivities.length} activities planned
@@ -649,6 +705,12 @@ export function CalendarView() {
                     >
                       {selectedSession.status}
                     </Badge>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-xs text-muted-foreground">Address</span>
+                    <p className="text-sm font-medium text-foreground">
+                      {selectedSession.address}
+                    </p>
                   </div>
                 </div>
 
