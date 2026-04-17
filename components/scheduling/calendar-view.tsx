@@ -305,18 +305,6 @@ export function CalendarView() {
                       }
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      type="text"
-                      placeholder="Enter session address"
-                      value={newSession.address}
-                      onChange={(e) =>
-                        setNewSession({ ...newSession, address: e.target.value })
-                      }
-                    />
-                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="type">Session Type</Label>
@@ -580,6 +568,9 @@ export function CalendarView() {
                           </div>
                           <div className="truncate text-[10px] sm:text-xs">
                             {session.client.split(" ")[0]}
+                          </div>
+                          <div className="truncate text-[10px] opacity-90 sm:text-xs">
+                            {session.address}
                           </div>
                         </button>
                       ))}
