@@ -47,6 +47,27 @@ export interface Client {
   status: "active" | "on-hold" | "discharged"
 }
 
+export interface UserProfile {
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  specialty: string
+  bio: string
+  avatar: string
+  timezone: string
+  defaultDuration: string
+  startTime: string
+  endTime: string
+  bufferTime: string
+  notifications: {
+    email: boolean
+    sms: boolean
+    push: boolean
+    reminders: boolean
+  }
+}
+
 // Default Tests/Activities Database
 const defaultTests: Test[] = [
   { id: 1, name: "GFTA-3 Articulation Test", category: "Assessment", description: "Goldman-Fristoe Test of Articulation" },
@@ -164,6 +185,28 @@ const defaultClients: Client[] = [
     status: "on-hold",
   },
 ]
+
+// Default User Profile
+const defaultUserProfile: UserProfile = {
+  firstName: "Sarah",
+  lastName: "Chen",
+  email: "sarah.chen@clarity.health",
+  phone: "(555) 123-4567",
+  specialty: "speech",
+  bio: "Certified Speech-Language Pathologist with 10+ years of experience working with children. Specialized in articulation disorders and language development.",
+  avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
+  timezone: "pst",
+  defaultDuration: "45",
+  startTime: "08:00",
+  endTime: "18:00",
+  bufferTime: "15",
+  notifications: {
+    email: true,
+    sms: false,
+    push: true,
+    reminders: true,
+  },
+}
 
 // Default Sessions (freeform - just date based, no time slots)
 const defaultSessions: Session[] = [
@@ -361,6 +404,10 @@ interface DataContextType {
   getUpcomingSessions: () => Session[]
   getPastSessions: () => Session[]
   getTodaysSessions: () => Session[]
+
+  // User Profile
+  userProfile: UserProfile
+  updateUserProfile: (updates: Partial<UserProfile>) => void
 }
 
 const DataContext = createContext<DataContextType | null>(null)
@@ -369,6 +416,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tests, setTests] = useState<Test[]>(defaultTests)
   const [clients, setClients] = useState<Client[]>(defaultClients)
   const [sessions, setSessions] = useState<Session[]>(defaultSessions)
+  const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile)
 
   const addTest = (test: Omit<Test, "id">) => {
     setTests(prev => [...prev, { ...test, id: Date.now() }])
@@ -422,6 +470,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => a.time.localeCompare(b.time))
   }
 
+  const updateUserProfile = (updates: Partial<UserProfile>) => {
+    setUserProfile(prev => ({ ...prev, ...updates }))
+  }
+
   return (
     <DataContext.Provider
       value={{
@@ -439,6 +491,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getUpcomingSessions,
         getPastSessions,
         getTodaysSessions,
+        userProfile,
+        updateUserProfile,
       }}
     >
       {children}

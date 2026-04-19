@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ViewType } from "@/app/page"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { useData } from "@/lib/data-context"
 
 interface MobileNavProps {
   currentView: ViewType
@@ -19,6 +20,8 @@ export function MobileNav({
   sidebarOpen,
   setSidebarOpen,
 }: MobileNavProps) {
+  const { userProfile } = useData()
+
   const viewTitles: Record<ViewType, string> = {
     dashboard: "Dashboard",
     calendar: "Calendar",
@@ -60,9 +63,9 @@ export function MobileNav({
         <span className="text-lg font-semibold text-foreground">{viewTitles[currentView]}</span>
       </div>
 
-      <Avatar className="h-9 w-9">
-        <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Dr. Sarah Chen" />
-        <AvatarFallback>SC</AvatarFallback>
+      <Avatar className="h-9 w-9 cursor-pointer" onClick={() => onNavigate("settings")}>
+        <AvatarImage src={userProfile.avatar} alt={`${userProfile.firstName} ${userProfile.lastName}`} />
+        <AvatarFallback>{userProfile.firstName[0]}{userProfile.lastName[0]}</AvatarFallback>
       </Avatar>
     </div>
   )

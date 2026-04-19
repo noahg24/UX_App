@@ -30,7 +30,7 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ onNavigate }: DashboardViewProps) {
-  const { getTodaysSessions, getPastSessions, clients, addSession, tests, sessions } = useData()
+  const { getTodaysSessions, getPastSessions, clients, addSession, tests, sessions, userProfile } = useData()
   const todaySessions = getTodaysSessions()
   const pastSessions = getPastSessions()
   
@@ -198,7 +198,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
       {/* Welcome Header */}
       <div>
         <h1 className="text-2xl font-semibold text-foreground">
-          Good morning, Sarah
+          Good morning, {userProfile.firstName}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           You have {todaySessions.length} sessions scheduled for today

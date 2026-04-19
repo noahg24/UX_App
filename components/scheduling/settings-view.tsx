@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,14 +16,77 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
+import { useData } from "@/lib/data-context"
+import { useToast } from "@/hooks/use-toast"
 
 export function SettingsView() {
-  const [notifications, setNotifications] = useState({
-    email: true,
-    sms: false,
-    push: true,
-    reminders: true,
+  const { userProfile, updateUserProfile } = useData()
+  const { toast } = useToast()
+
+  // Local state for form fields
+  const [profileData, setProfileData] = useState({
+    firstName: userProfile.firstName,
+    lastName: userProfile.lastName,
+    email: userProfile.email,
+    phone: userProfile.phone,
+    specialty: userProfile.specialty,
+    bio: userProfile.bio,
+    timezone: userProfile.timezone,
+    defaultDuration: userProfile.defaultDuration,
+    startTime: userProfile.startTime,
+    endTime: userProfile.endTime,
+    bufferTime: userProfile.bufferTime,
   })
+
+  const [notifications, setNotifications] = useState(userProfile.notifications)
+
+  // Update local state when userProfile changes
+  useEffect(() => {
+    setProfileData({
+      firstName: userProfile.firstName,
+      lastName: userProfile.lastName,
+      email: userProfile.email,
+      phone: userProfile.phone,
+      specialty: userProfile.specialty,
+      bio: userProfile.bio,
+      timezone: userProfile.timezone,
+      defaultDuration: userProfile.defaultDuration,
+      startTime: userProfile.startTime,
+      endTime: userProfile.endTime,
+      bufferTime: userProfile.bufferTime,
+    })
+    setNotifications(userProfile.notifications)
+  }, [userProfile])
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  const handleSaveProfile = () => {
+    updateUserProfile({
+      ...profileData,
+      notifications,
+    })
+    toast({
+      title: "Profile Updated",
+      description: "Your profile changes have been saved successfully.",
+    })
+  }
+
+  const handleSavePreferences = () => {
+    updateUserProfile({
+      timezone: profileData.timezone,
+      defaultDuration: profileData.defaultDuration,
+      startTime: profileData.startTime,
+      endTime: profileData.endTime,
+      bufferTime: profileData.bufferTime,
+    })
+    toast({
+      title: "Preferences Updated",
+      description: "Your scheduling preferences have been saved successfully.",
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -45,8 +108,8 @@ export function SettingsView() {
           {/* Avatar */}
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20 border-2 border-border">
-              <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Dr. Sarah Chen" />
-              <AvatarFallback className="text-lg">SC</AvatarFallback>
+              <AvatarImage src={userProfile.avatar} alt={`${userProfile.firstName} ${userProfile.lastName}`} />
+              <AvatarFallback className="text-lg">{userProfile.firstName[0]}{userProfile.lastName[0]}</AvatarFallback>
             </Avatar>
             <div>
               <Button variant="outline" size="sm">
@@ -61,27 +124,48 @@ export function SettingsView() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" defaultValue="Sarah" />
+              <Input
+                id="firstName"
+                value={profileData.firstName}
+                onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" defaultValue="Chen" />
+              <Input
+                id="lastName"
+                value={profileData.lastName}
+                onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" defaultValue="sarah.chen@clarity.health" />
+            <Input
+              id="email"
+              type="email"
+              value={profileData.email}
+              onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" defaultValue="(555) 123-4567" />
+            <Input
+              id="phone"
+              type="tel"
+              value={profileData.phone}
+              onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="specialty">Specialty</Label>
-            <Select defaultValue="speech">
+            <Select
+              value={profileData.specialty}
+              onValueChange={(value) => setProfileData(prev => ({ ...prev, specialty: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -100,12 +184,13 @@ export function SettingsView() {
             <Textarea
               id="bio"
               placeholder="Tell clients about yourself..."
-              defaultValue="Certified Speech-Language Pathologist with 10+ years of experience working with children. Specialized in articulation disorders and language development."
+              value={profileData.bio}
+              onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
               rows={3}
             />
           </div>
 
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSaveProfile}>
             Save Changes
           </Button>
         </CardContent>
@@ -121,7 +206,10 @@ export function SettingsView() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="timezone">Timezone</Label>
-              <Select defaultValue="pst">
+              <Select
+                value={profileData.timezone}
+                onValueChange={(value) => setProfileData(prev => ({ ...prev, timezone: value }))}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -135,7 +223,10 @@ export function SettingsView() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="defaultDuration">Default Session Duration</Label>
-              <Select defaultValue="45">
+              <Select
+                value={profileData.defaultDuration}
+                onValueChange={(value) => setProfileData(prev => ({ ...prev, defaultDuration: value }))}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -152,17 +243,30 @@ export function SettingsView() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="startTime">Working Hours Start</Label>
-              <Input id="startTime" type="time" defaultValue="08:00" />
+              <Input
+                id="startTime"
+                type="time"
+                value={profileData.startTime}
+                onChange={(e) => setProfileData(prev => ({ ...prev, startTime: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="endTime">Working Hours End</Label>
-              <Input id="endTime" type="time" defaultValue="18:00" />
+              <Input
+                id="endTime"
+                type="time"
+                value={profileData.endTime}
+                onChange={(e) => setProfileData(prev => ({ ...prev, endTime: e.target.value }))}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="bufferTime">Buffer Time Between Sessions</Label>
-            <Select defaultValue="15">
+            <Select
+              value={profileData.bufferTime}
+              onValueChange={(value) => setProfileData(prev => ({ ...prev, bufferTime: value }))}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -176,7 +280,7 @@ export function SettingsView() {
             </Select>
           </div>
 
-          <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSavePreferences}>
             Save Preferences
           </Button>
         </CardContent>
