@@ -9,13 +9,20 @@ import { ClientsView } from "@/components/scheduling/clients-view"
 import { SessionsView } from "@/components/scheduling/sessions-view"
 import { SettingsView } from "@/components/scheduling/settings-view"
 import { DatabaseView } from "@/components/scheduling/database-view"
+import { LoginView } from "@/components/scheduling/login-view"
 import { DataProvider } from "@/lib/data-context"
+import { useData } from "@/lib/data-context"
 
 export type ViewType = "dashboard" | "calendar" | "clients" | "sessions" | "settings" | "database"
 
-export default function SchedulingApp() {
+function SchedulingAppContent() {
+  const { isLoggedIn } = useData()
   const [currentView, setCurrentView] = useState<ViewType>("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  if (!isLoggedIn) {
+    return <LoginView />
+  }
 
   const renderView = () => {
     switch (currentView) {
@@ -37,53 +44,59 @@ export default function SchedulingApp() {
   }
 
   return (
-    <DataProvider>
-      <div className="min-h-screen bg-background">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-          <Sidebar currentView={currentView} onNavigate={setCurrentView} />
-        </div>
-
-        {/* Mobile Navigation */}
-        <MobileNav
-          currentView={currentView}
-          onNavigate={setCurrentView}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
-        />
-
-        {/* Main Content */}
-        <main className="lg:pl-72">
-          <div className="px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
-            {renderView()}
-          </div>
-        </main>
-
-        {/* Mobile Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card lg:hidden">
-          <nav className="flex items-center justify-around py-2">
-            {[
-              { id: "dashboard" as ViewType, label: "Home", icon: HomeIcon },
-              { id: "calendar" as ViewType, label: "Calendar", icon: CalendarIcon },
-              { id: "clients" as ViewType, label: "Clients", icon: UsersIcon },
-              { id: "sessions" as ViewType, label: "Sessions", icon: ClipboardIcon },
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setCurrentView(item.id)}
-                className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
-                  currentView === item.id
-                    ? "text-accent"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
+    <div className="min-h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+        <Sidebar currentView={currentView} onNavigate={setCurrentView} />
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNav
+        currentView={currentView}
+        onNavigate={setCurrentView}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
+
+      {/* Main Content */}
+      <main className="lg:pl-72">
+        <div className="px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8 lg:pb-8">
+          {renderView()}
+        </div>
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card lg:hidden">
+        <nav className="flex items-center justify-around py-2">
+          {[
+            { id: "dashboard" as ViewType, label: "Home", icon: HomeIcon },
+            { id: "calendar" as ViewType, label: "Calendar", icon: CalendarIcon },
+            { id: "clients" as ViewType, label: "Clients", icon: UsersIcon },
+            { id: "sessions" as ViewType, label: "Sessions", icon: ClipboardIcon },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setCurrentView(item.id)}
+              className={`flex flex-col items-center gap-1 px-3 py-2 text-xs transition-colors ${
+                currentView === item.id
+                  ? "text-accent"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </div>
+  )
+}
+
+export default function SchedulingApp() {
+  return (
+    <DataProvider>
+      <SchedulingAppContent />
     </DataProvider>
   )
 }

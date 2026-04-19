@@ -123,11 +123,11 @@ function MobileSidebarContent({
       <div className="-mx-2">
         <div className="flex items-center gap-x-4 rounded-lg p-2">
           <Avatar className="h-10 w-10 border-2 border-sidebar-border">
-            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Dr. Sarah Chen" />
-            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground">SC</AvatarFallback>
+            <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Dr. Victor Chen" />
+            <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground">VC</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">Dr. Sarah Chen</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">Dr. Victor Chen</p>
             <p className="text-xs text-sidebar-foreground/60 truncate">Speech Therapist</p>
           </div>
         </div>

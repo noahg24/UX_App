@@ -35,6 +35,7 @@ export function CalendarView() {
   const [selectedDay, setSelectedDay] = useState<Date>(new Date(2026, 3, 14))
   const [isAddSessionOpen, setIsAddSessionOpen] = useState(false)
   const [isOptimizeOpen, setIsOptimizeOpen] = useState(false)
+  const [isImportOpen, setIsImportOpen] = useState(false)
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [sessionNotes, setSessionNotes] = useState("")
   const [activities, setActivities] = useState<Session["plannedActivities"]>([])
@@ -203,6 +204,56 @@ export function CalendarView() {
     }
   }
 
+  const timeToMinutes = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(":").map(Number)
+    return hours * 60 + minutes
+  }
+
+  const minutesToTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${hours}h ${mins}m`
+  }
+
+  const buildTimeline = (sessionsForDay: Session[]) => {
+    if (sessionsForDay.length === 0) return []
+
+    // Sort sessions by time
+    const sorted = [...sessionsForDay].sort((a, b) => {
+      return timeToMinutes(a.time) - timeToMinutes(b.time)
+    })
+
+    const timeline: Array<{
+      type: "session" | "travel"
+      session?: Session
+      freeTime?: string
+      travelTime?: string
+    }> = []
+
+    sorted.forEach((session, index) => {
+      timeline.push({ type: "session", session })
+
+      // Add travel/free time between sessions
+      if (index < sorted.length - 1) {
+        const currentEnd = timeToMinutes(session.time) + parseInt(session.duration.split(" ")[0])
+        const nextStart = timeToMinutes(sorted[index + 1].time)
+        const freeMinutes = nextStart - currentEnd
+
+        // Generate random travel time less than free time
+        const maxTravelTime = Math.max(5, freeMinutes - 5)
+        const travelMinutes = Math.floor(Math.random() * maxTravelTime) + 5
+
+        timeline.push({
+          type: "travel",
+          freeTime: minutesToTime(freeMinutes),
+          travelTime: minutesToTime(travelMinutes),
+        })
+      }
+    })
+
+    return timeline
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -249,6 +300,13 @@ export function CalendarView() {
               onClick={() => setIsOptimizeOpen(true)}
             >
               Optimize
+            </Button>
+          <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsImportOpen(true)}
+            >
+              Import
             </Button>
           <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
             <DialogTrigger asChild>
@@ -400,6 +458,24 @@ export function CalendarView() {
                 <Button
                   className="w-full"
                   onClick={() => setIsOptimizeOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Import Sessions</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <p className="text-sm text-muted-foreground">
+                  This feature is under construction.
+                </p>
+                <Button
+                  className="w-full"
+                  onClick={() => setIsImportOpen(false)}
                 >
                   Close
                 </Button>
@@ -582,67 +658,163 @@ export function CalendarView() {
           </CardContent>
         </Card>
       ) : (
-        <Card className="border-border/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base font-semibold sm:text-lg">
-              Sessions for {selectedDay.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {getSessionsForDateObj(selectedDay).length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">
-                No sessions scheduled for this day
-              </div>
-            ) : (
-              getSessionsForDateObj(selectedDay).map((session) => (
-                <button
-                  key={session.id}
-                  onClick={() => handleSessionClick(session)}
-                  className="flex w-full items-start gap-3 rounded-lg border border-border/50 p-3 text-left transition-colors hover:border-accent/50 hover:bg-muted/50"
-                >
-                  <Avatar className="h-10 w-10 shrink-0 border border-border">
-                    <AvatarImage src={session.avatar} alt={session.client} />
-                    <AvatarFallback>
-                      {session.client.split(" ").map((n) => n[0]).join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                      <span className="font-medium text-foreground text-sm">
-                        {session.client}
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className={`text-xs ${
-                          session.status === "confirmed"
-                            ? "bg-accent/10 text-accent"
-                            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        {session.status}
-                      </Badge>
+        <div className="space-y-4">
+          {/* Timeline View */}
+          {getSessionsForDateObj(selectedDay).length > 0 && (
+            <Card className="border-border/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base font-semibold sm:text-lg">
+                  Travel Timeline
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-4">
+                  {buildTimeline(getSessionsForDateObj(selectedDay)).map((item, idx) => (
+                    <div key={idx}>
+                      {item.type === "session" ? (
+                        // Session Node
+                        <div className="flex gap-4">
+                          <div className="flex flex-col items-center gap-2 pt-1">
+                            <div className="h-3 w-3 rounded-full bg-accent ring-2 ring-accent/30"></div>
+                          </div>
+                          <div className="flex-1 pb-4">
+                            <button
+                              onClick={() => handleSessionClick(item.session!)}
+                              className="flex w-full items-start gap-3 rounded-lg border border-border/50 p-3 text-left transition-colors hover:border-accent/50 hover:bg-muted/50"
+                            >
+                              <Avatar className="h-10 w-10 shrink-0 border border-border">
+                                <AvatarImage src={item.session!.avatar} alt={item.session!.client} />
+                                <AvatarFallback>
+                                  {item.session!.client.split(" ").map((n) => n[0]).join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                                  <span className="font-medium text-foreground text-sm">
+                                    {item.session!.client}
+                                  </span>
+                                  <Badge
+                                    variant="secondary"
+                                    className={`text-xs ${
+                                      item.session!.status === "confirmed"
+                                        ? "bg-accent/10 text-accent"
+                                        : "bg-muted text-muted-foreground"
+                                    }`}
+                                  >
+                                    {item.session!.status}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  {item.session!.type} · {item.session!.duration}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {item.session!.address}
+                                </p>
+                                {item.session!.plannedActivities.length > 0 && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    {item.session!.plannedActivities.length} activities planned
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right shrink-0">
+                                <div className="font-medium text-foreground text-sm">{item.session!.time}</div>
+                                <div className="text-xs text-muted-foreground">{item.session!.duration}</div>
+                              </div>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Travel/Free Time Node
+                        <div className="flex gap-4">
+                          <div className="flex flex-col items-center gap-2">
+                            <div className="w-0.5 h-8 bg-border"></div>
+                          </div>
+                          <div className="flex-1 pb-4">
+                            <div className="rounded-lg border border-dashed border-muted-foreground/50 bg-muted/30 p-3">
+                              <div className="grid grid-cols-2 gap-3 text-sm">
+                                <div>
+                                  <span className="text-xs text-muted-foreground">Free Time</span>
+                                  <p className="font-medium text-foreground">{item.freeTime}</p>
+                                </div>
+                                <div>
+                                  <span className="text-xs text-muted-foreground">Travel Time</span>
+                                  <p className="font-medium text-foreground">{item.travelTime}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {session.type} · {session.duration}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {session.address}
-                    </p>
-                    {session.plannedActivities.length > 0 && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {session.plannedActivities.length} activities planned
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Sessions List */}
+          <Card className="border-border/50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-semibold sm:text-lg">
+                Sessions for {selectedDay.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {getSessionsForDateObj(selectedDay).length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No sessions scheduled for this day
+                </div>
+              ) : (
+                getSessionsForDateObj(selectedDay).map((session) => (
+                  <button
+                    key={session.id}
+                    onClick={() => handleSessionClick(session)}
+                    className="flex w-full items-start gap-3 rounded-lg border border-border/50 p-3 text-left transition-colors hover:border-accent/50 hover:bg-muted/50"
+                  >
+                    <Avatar className="h-10 w-10 shrink-0 border border-border">
+                      <AvatarImage src={session.avatar} alt={session.client} />
+                      <AvatarFallback>
+                        {session.client.split(" ").map((n) => n[0]).join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                        <span className="font-medium text-foreground text-sm">
+                          {session.client}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs ${
+                            session.status === "confirmed"
+                              ? "bg-accent/10 text-accent"
+                              : "bg-muted text-muted-foreground"
+                          }`}
+                        >
+                          {session.status}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {session.type} · {session.duration}
                       </p>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-medium text-foreground text-sm">{session.time}</div>
-                    <div className="text-xs text-muted-foreground">{session.duration}</div>
-                  </div>
-                </button>
-              ))
-            )}
-          </CardContent>
-        </Card>
+                      <p className="text-xs text-muted-foreground">
+                        {session.address}
+                      </p>
+                      {session.plannedActivities.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {session.plannedActivities.length} activities planned
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="font-medium text-foreground text-sm">{session.time}</div>
+                      <div className="text-xs text-muted-foreground">{session.duration}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Session Detail Dialog */}

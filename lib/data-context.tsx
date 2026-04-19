@@ -68,6 +68,17 @@ export interface UserProfile {
   }
 }
 
+export interface AuthCredentials {
+  username: string
+  password: string
+}
+
+// Default stored credentials
+const defaultAuthCredentials: AuthCredentials = {
+  username: "victor",
+  password: "password123",
+}
+
 // Default Tests/Activities Database
 const defaultTests: Test[] = [
   { id: 1, name: "GFTA-3 Articulation Test", category: "Assessment", description: "Goldman-Fristoe Test of Articulation" },
@@ -188,9 +199,9 @@ const defaultClients: Client[] = [
 
 // Default User Profile
 const defaultUserProfile: UserProfile = {
-  firstName: "Sarah",
+  firstName: "Victor",
   lastName: "Chen",
-  email: "sarah.chen@clarity.health",
+  email: "victor.chen@clarity.health",
   phone: "(555) 123-4567",
   specialty: "speech",
   bio: "Certified Speech-Language Pathologist with 10+ years of experience working with children. Specialized in articulation disorders and language development.",
@@ -408,6 +419,11 @@ interface DataContextType {
   // User Profile
   userProfile: UserProfile
   updateUserProfile: (updates: Partial<UserProfile>) => void
+
+  // Authentication
+  isLoggedIn: boolean
+  login: (username: string, password: string) => boolean
+  logout: () => void
 }
 
 const DataContext = createContext<DataContextType | null>(null)
@@ -417,6 +433,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [clients, setClients] = useState<Client[]>(defaultClients)
   const [sessions, setSessions] = useState<Session[]>(defaultSessions)
   const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const addTest = (test: Omit<Test, "id">) => {
     setTests(prev => [...prev, { ...test, id: Date.now() }])
@@ -474,6 +491,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setUserProfile(prev => ({ ...prev, ...updates }))
   }
 
+  const login = (username: string, password: string): boolean => {
+    if (username === defaultAuthCredentials.username && password === defaultAuthCredentials.password) {
+      setIsLoggedIn(true)
+      return true
+    }
+    return false
+  }
+
+  const logout = () => {
+    setIsLoggedIn(false)
+  }
+
   return (
     <DataContext.Provider
       value={{
@@ -493,6 +522,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getTodaysSessions,
         userProfile,
         updateUserProfile,
+        isLoggedIn,
+        login,
+        logout,
       }}
     >
       {children}
