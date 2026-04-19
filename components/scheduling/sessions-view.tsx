@@ -16,10 +16,11 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useData, type Session } from "@/lib/data-context"
 
 export function SessionsView() {
-  const { getUpcomingSessions, getPastSessions, updateSession, tests } = useData()
+  const { getUpcomingSessions, getPastSessions, updateSession, tests, addSession, clients } = useData()
   const upcomingSessions = getUpcomingSessions()
   const pastSessions = getPastSessions()
 
@@ -28,6 +29,16 @@ export function SessionsView() {
   const [sessionNotes, setSessionNotes] = useState("")
   const [activities, setActivities] = useState<Session["plannedActivities"]>([])
   const [newActivity, setNewActivity] = useState("")
+  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false)
+  const [newSession, setNewSession] = useState({
+    clientId: "",
+    date: "",
+    time: "",
+    duration: "45",
+    type: "Speech Therapy",
+    address: "",
+    activities: [] as string[],
+  })
 
   const filterSessions = (sessionList: Session[]) => {
     return sessionList.filter((session) =>
@@ -58,14 +69,57 @@ export function SessionsView() {
     }
   }
 
+  const handleCompleteSession = (sessionId: number) => {
+    updateSession(sessionId, { status: "completed" })
+  }
+
   const handleSaveSession = () => {
     if (selectedSession) {
-      updateSession(selectedSession.id, {
-        notes: sessionNotes,
-        plannedActivities: activities,
-      })
+      updateSession(selectedSession.id, { notes: sessionNotes })
       setSelectedSession(null)
     }
+  }
+
+  const handleAddSession = () => {
+    const client = clients.find((c) => c.id === Number(newSession.clientId))
+    if (client && newSession.date && newSession.time) {
+      addSession({
+        clientId: client.id,
+        client: client.name,
+        avatar: client.avatar,
+        date: newSession.date,
+        time: newSession.time,
+        duration: `${newSession.duration} min`,
+        type: newSession.type,
+        address: newSession.address,
+        status: "confirmed",
+        notes: "",
+        plannedActivities: newSession.activities.map((name, idx) => ({
+          id: idx + 1,
+          name,
+          completed: false,
+        })),
+      })
+      setNewSession({
+        clientId: "",
+        date: "",
+        time: "",
+        duration: "45",
+        type: "Speech Therapy",
+        address: "",
+        activities: [],
+      })
+      setIsAddSessionOpen(false)
+    }
+  }
+
+  const toggleSessionActivity = (activityName: string) => {
+    setNewSession((prev) => ({
+      ...prev,
+      activities: prev.activities.includes(activityName)
+        ? prev.activities.filter((a) => a !== activityName)
+        : [...prev.activities, activityName],
+    }))
   }
 
   const formatDateLabel = (dateStr: string) => {
@@ -82,11 +136,21 @@ export function SessionsView() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold text-foreground sm:text-2xl">Sessions</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Manage your therapy sessions and notes
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground sm:text-2xl">Sessions</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Manage your therapy sessions and notes
+          </p>
+        </div>
+        <Button
+          size="sm"
+          className="bg-accent text-accent-foreground hover:bg-accent/90"
+          onClick={() => setIsAddSessionOpen(true)}
+        >
+          <PlusIcon className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Add Session</span>
+        </Button>
       </div>
 
       {/* Search */}
@@ -135,6 +199,7 @@ export function SessionsView() {
                 onClick={() => handleSessionClick(session)}
                 formatDate={formatDateLabel}
                 showActions
+                onCompleteSession={handleCompleteSession}
               />
             ))
           )}
@@ -215,6 +280,12 @@ export function SessionsView() {
                     >
                       {selectedSession.status}
                     </Badge>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-xs text-muted-foreground">Address</span>
+                    <p className="text-sm font-medium text-foreground">
+                      {selectedSession.address}
+                    </p>
                   </div>
                 </div>
 
@@ -305,6 +376,140 @@ export function SessionsView() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Session Dialog */}
+      <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Schedule New Session</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="client">Client</Label>
+              <Select
+                value={newSession.clientId}
+                onValueChange={(value) =>
+                  setNewSession({ ...newSession, clientId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={String(client.id)}>
+                      {client.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Date</Label>
+                <Input
+                  type="date"
+                  id="date"
+                  value={newSession.date}
+                  onChange={(e) =>
+                    setNewSession({ ...newSession, date: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="time">Time</Label>
+                <Input
+                  type="time"
+                  id="time"
+                  value={newSession.time}
+                  onChange={(e) =>
+                    setNewSession({ ...newSession, time: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="type">Session Type</Label>
+              <Select
+                value={newSession.type}
+                onValueChange={(value) =>
+                  setNewSession({ ...newSession, type: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Speech Therapy">Speech Therapy</SelectItem>
+                  <SelectItem value="Language Development">Language Development</SelectItem>
+                  <SelectItem value="Assessment">Assessment</SelectItem>
+                  <SelectItem value="Follow-up">Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Input
+                id="address"
+                type="text"
+                placeholder="Enter session address"
+                value={newSession.address}
+                onChange={(e) =>
+                  setNewSession({ ...newSession, address: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration</Label>
+              <Select
+                value={newSession.duration}
+                onValueChange={(value) =>
+                  setNewSession({ ...newSession, duration: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="45">45 minutes</SelectItem>
+                  <SelectItem value="60">60 minutes</SelectItem>
+                  <SelectItem value="90">90 minutes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Tests / Activities</Label>
+              <div className="max-h-32 overflow-y-auto rounded-lg border border-border p-2 space-y-1">
+                {tests.slice(0, 10).map((test) => (
+                  <label
+                    key={test.id}
+                    className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-muted/50"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={newSession.activities.includes(test.name)}
+                      onChange={() => toggleSessionActivity(test.name)}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm text-foreground">{test.name}</span>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {newSession.activities.length} selected
+              </p>
+            </div>
+            <Button 
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              onClick={handleAddSession}
+              disabled={!newSession.clientId || !newSession.date || !newSession.time || !newSession.address}
+            >
+              Schedule Session
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -314,11 +519,13 @@ function SessionCard({
   onClick,
   formatDate,
   showActions = false,
+  onCompleteSession,
 }: {
   session: Session
   onClick: () => void
   formatDate: (date: string) => string
   showActions?: boolean
+  onCompleteSession?: (sessionId: number) => void
 }) {
   return (
     <Card
@@ -390,10 +597,11 @@ function SessionCard({
               className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90 text-xs sm:text-sm"
               onClick={(e) => {
                 e.stopPropagation()
+                onCompleteSession?.(session.id)
               }}
             >
               <CheckIcon className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
-              Check In
+              Complete
             </Button>
           </div>
         )}

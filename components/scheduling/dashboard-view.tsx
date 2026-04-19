@@ -30,9 +30,38 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ onNavigate }: DashboardViewProps) {
-  const { getTodaysSessions, getPastSessions, clients, addSession, tests } = useData()
+  const { getTodaysSessions, getPastSessions, clients, addSession, tests, sessions } = useData()
   const todaySessions = getTodaysSessions()
   const pastSessions = getPastSessions()
+  
+  // Calculate current week completion rate
+  const getCurrentWeekCompletionRate = () => {
+    const today = new Date("2026-04-14") // Using the same date as in data-context
+    const currentDay = today.getDay() // 0 = Sunday, 6 = Saturday
+    
+    // Calculate start of week (Sunday)
+    const startOfWeek = new Date(today)
+    startOfWeek.setDate(today.getDate() - currentDay)
+    startOfWeek.setHours(0, 0, 0, 0)
+    
+    // Calculate end of week (Saturday)
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 6)
+    endOfWeek.setHours(23, 59, 59, 999)
+    
+    // Filter sessions for current week
+    const weekSessions = sessions.filter(session => {
+      const sessionDate = new Date(session.date)
+      return sessionDate >= startOfWeek && sessionDate <= endOfWeek
+    })
+    
+    if (weekSessions.length === 0) return "0%"
+    
+    const completedSessions = weekSessions.filter(session => session.status === "completed").length
+    const completionRate = Math.round((completedSessions / weekSessions.length) * 100)
+    
+    return `${completionRate}%`
+  }
   
   const [selectedSession, setSelectedSession] = useState<Session | null>(null)
   const [sessionNotes, setSessionNotes] = useState("")
@@ -48,6 +77,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
     time: "",
     duration: "45",
     type: "Speech Therapy",
+    address: "",
     activities: [] as string[],
   })
 
@@ -67,7 +97,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
     { label: "Today", value: String(todaySessions.length), sublabel: "sessions" },
     { label: "Clients", value: String(clients.filter(c => c.status === "active").length), sublabel: "active" },
     { label: "Hours", value: "32", sublabel: "this week" },
-    { label: "Rate", value: "94%", sublabel: "completion" },
+    { label: "Rate", value: getCurrentWeekCompletionRate(), sublabel: "completion" },
   ]
 
   const recentNotes = pastSessions.slice(0, 3).map(s => ({
@@ -100,6 +130,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         time: newSession.time,
         duration: `${newSession.duration} min`,
         type: newSession.type,
+        address: newSession.address,
         status: "confirmed",
         notes: "",
         plannedActivities: newSession.activities.map((name, idx) => ({
@@ -114,6 +145,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         time: "",
         duration: "45",
         type: "Speech Therapy",
+        address: "",
         activities: [],
       })
       setIsNewSessionOpen(false)
@@ -395,6 +427,12 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
                     <span className="text-xs text-muted-foreground">Date</span>
                     <p className="text-sm font-medium text-foreground">{formatDateLabel(selectedSession.date)}</p>
                   </div>
+                  <div className="col-span-2">
+                    <span className="text-xs text-muted-foreground">Address</span>
+                    <p className="text-sm font-medium text-foreground">
+                      {selectedSession.address}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Planned Activities/Tests */}
@@ -535,6 +573,18 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="quick-session-address">Address</Label>
+              <Input
+                id="quick-session-address"
+                type="text"
+                placeholder="Enter session address"
+                value={newSession.address}
+                onChange={(e) =>
+                  setNewSession({ ...newSession, address: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="quick-session-duration">Duration</Label>
               <Select
                 value={newSession.duration}
@@ -578,7 +628,7 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <Button
               className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
               onClick={handleAddSession}
-              disabled={!newSession.clientId || !newSession.date || !newSession.time}
+              disabled={!newSession.clientId || !newSession.date || !newSession.time || !newSession.address}
             >
               Schedule Session
             </Button>

@@ -24,6 +24,7 @@ export function MobileNav({
     calendar: "Calendar",
     clients: "Clients",
     sessions: "Sessions",
+    database: "Database",
     settings: "Settings",
   }
 

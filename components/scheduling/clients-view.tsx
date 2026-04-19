@@ -54,6 +54,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
     time: "",
     duration: "45",
     type: "Speech Therapy",
+    address: "",
     activities: [] as string[],
   })
 
@@ -103,6 +104,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
         time: newSession.time,
         duration: `${newSession.duration} min`,
         type: newSession.type,
+        address: newSession.address,
         status: "confirmed",
         notes: "",
         plannedActivities: newSession.activities.map((name, idx) => ({
@@ -116,6 +118,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
         time: "",
         duration: "45",
         type: "Speech Therapy",
+        address: "",
         activities: [],
       })
       setShowScheduleSession(false)
@@ -523,6 +526,18 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="session-address">Address</Label>
+              <Input
+                id="session-address"
+                type="text"
+                placeholder="Enter session address"
+                value={newSession.address}
+                onChange={(e) =>
+                  setNewSession({ ...newSession, address: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="session-duration">Duration</Label>
               <Select
                 value={newSession.duration}
@@ -574,7 +589,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
               <Button
                 className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
                 onClick={handleScheduleSession}
-                disabled={!newSession.date || !newSession.time}
+                disabled={!newSession.date || !newSession.time || !newSession.address}
               >
                 Schedule
               </Button>

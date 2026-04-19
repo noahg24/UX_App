@@ -47,6 +47,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
     time: "",
     duration: "45",
     type: "Speech Therapy",
+    address: "",
     activities: [] as string[],
   })
 
@@ -73,6 +74,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
         time: newSession.time,
         duration: `${newSession.duration} min`,
         type: newSession.type,
+        address: newSession.address,
         status: "confirmed",
         notes: "",
         plannedActivities: newSession.activities.map((name, idx) => ({
@@ -87,6 +89,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
         time: "",
         duration: "45",
         type: "Speech Therapy",
+        address: "",
         activities: [],
       })
       setIsNewSessionOpen(false)
@@ -309,6 +312,18 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="session-address">Address</Label>
+              <Input
+                id="session-address"
+                type="text"
+                placeholder="Enter session address"
+                value={newSession.address}
+                onChange={(e) =>
+                  setNewSession({ ...newSession, address: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="session-duration">Duration</Label>
               <Select
                 value={newSession.duration}
@@ -352,7 +367,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
             <Button
               className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
               onClick={handleAddSession}
-              disabled={!newSession.clientId || !newSession.date || !newSession.time}
+              disabled={!newSession.clientId || !newSession.date || !newSession.time || !newSession.address}
             >
               Schedule Session
             </Button>
