@@ -204,6 +204,33 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           You have {todaySessions.length} sessions scheduled for today
         </p>
       </div>
+      {/* Mobile Navigation - Visible on small screens */}
+      <div className="flex flex-wrap gap-2 sm:justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsNewSessionOpen(true)}
+        >
+          <PlusIcon className="mr-2 h-4 w-4" />
+          Session
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsNewClientOpen(true)}
+        >
+          <UserPlusIcon className="mr-2 h-4 w-4" />
+          Client
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onNavigate("sessions")}
+        >
+          <DocumentIcon className="mr-2 h-4 w-4" />
+          Notes
+        </Button>
+      </div>
 
       {/* Stats Grid - Mobile optimized */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -333,49 +360,6 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Quick Actions - Mobile optimized */}
-      <Card className="border-border/50 bg-primary text-primary-foreground">
-        <CardContent className="p-4 sm:p-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h3 className="text-base font-semibold sm:text-lg">Quick Actions</h3>
-              <p className="text-xs text-primary-foreground/70 sm:text-sm">
-                Common tasks at your fingertips
-              </p>
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 flex-col h-auto py-3 sm:flex-row sm:h-9 sm:py-1"
-                onClick={() => setIsNewSessionOpen(true)}
-              >
-                <PlusIcon className="h-4 w-4 sm:mr-2" />
-                <span className="text-xs mt-1 sm:mt-0 sm:text-sm">Session</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 flex-col h-auto py-3 sm:flex-row sm:h-9 sm:py-1"
-                onClick={() => setIsNewClientOpen(true)}
-              >
-                <UserPlusIcon className="h-4 w-4 sm:mr-2" />
-                <span className="text-xs mt-1 sm:mt-0 sm:text-sm">Client</span>
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 flex-col h-auto py-3 sm:flex-row sm:h-9 sm:py-1"
-                onClick={() => onNavigate("sessions")}
-              >
-                <DocumentIcon className="h-4 w-4 sm:mr-2" />
-                <span className="text-xs mt-1 sm:mt-0 sm:text-sm">Notes</span>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Session Detail Dialog */}
       <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>
