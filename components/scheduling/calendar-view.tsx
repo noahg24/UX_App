@@ -205,14 +205,26 @@ export function CalendarView() {
   }
 
   const timeToMinutes = (timeStr: string): number => {
-    const [hours, minutes] = timeStr.split(":").map(Number)
+    const [time, period] = timeStr.trim().split(" ")
+    let [hours, minutes] = time.split(":").map(Number)
+
+    if (period === "PM" && hours !== 12) {
+      hours += 12
+    }
+    if (period === "AM" && hours === 12) {
+      hours = 0
+    }
+
     return hours * 60 + minutes
   }
 
   const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60)
+    const hrs = Math.floor(minutes / 60)
     const mins = minutes % 60
-    return `${hours}h ${mins}m`
+
+    if (hrs === 0) return `${mins}m`
+    if (mins === 0) return `${hrs}h`
+    return `${hrs}h ${mins}m`
   }
 
   const buildTimeline = (sessionsForDay: Session[]) => {
@@ -237,11 +249,8 @@ export function CalendarView() {
       if (index < sorted.length - 1) {
         const currentEnd = timeToMinutes(session.time) + parseInt(session.duration.split(" ")[0])
         const nextStart = timeToMinutes(sorted[index + 1].time)
-        const freeMinutes = nextStart - currentEnd
-
-        // Generate random travel time less than free time
-        const maxTravelTime = Math.max(5, freeMinutes - 5)
-        const travelMinutes = Math.floor(Math.random() * maxTravelTime) + 5
+        const freeMinutes = Math.max(0, nextStart - currentEnd)
+        const travelMinutes = Math.max(0, freeMinutes - 10)
 
         timeline.push({
           type: "travel",
