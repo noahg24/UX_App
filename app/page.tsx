@@ -9,11 +9,12 @@ import { ClientsView } from "@/components/scheduling/clients-view"
 import { SessionsView } from "@/components/scheduling/sessions-view"
 import { SettingsView } from "@/components/scheduling/settings-view"
 import { DatabaseView } from "@/components/scheduling/database-view"
+import { MessagesView } from "@/components/scheduling/messages-view"
 import { LoginView } from "@/components/scheduling/login-view"
 import { DataProvider } from "@/lib/data-context"
 import { useData } from "@/lib/data-context"
 
-export type ViewType = "dashboard" | "calendar" | "clients" | "sessions" | "settings" | "database"
+export type ViewType = "dashboard" | "calendar" | "clients" | "sessions" | "messages" | "settings" | "database"
 
 function SchedulingAppContent() {
   const { isLoggedIn } = useData()
@@ -34,6 +35,8 @@ function SchedulingAppContent() {
         return <ClientsView onNavigate={setCurrentView} />
       case "sessions":
         return <SessionsView />
+      case "messages":
+        return <MessagesView />
       case "settings":
         return <SettingsView />
       case "database":
@@ -72,6 +75,7 @@ function SchedulingAppContent() {
             { id: "dashboard" as ViewType, label: "Home", icon: HomeIcon },
             { id: "calendar" as ViewType, label: "Calendar", icon: CalendarIcon },
             { id: "clients" as ViewType, label: "Clients", icon: UsersIcon },
+            { id: "messages" as ViewType, label: "Messages", icon: ChatIcon },
             { id: "sessions" as ViewType, label: "Sessions", icon: ClipboardIcon },
           ].map((item) => (
             <button
@@ -113,6 +117,14 @@ function CalendarIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+    </svg>
+  )
+}
+
+function ChatIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 4.5h5.25M12 19.5c4.142 0 7.5-2.916 7.5-6.5S16.142 6.5 12 6.5 4.5 9.416 4.5 13c0 1.225.39 2.35 1.055 3.264L4.5 18.75l3.461-1.231A7.474 7.474 0 0 0 12 19.5Z" />
     </svg>
   )
 }

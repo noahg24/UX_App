@@ -31,6 +31,15 @@ export interface Session {
   plannedActivities: Activity[]
 }
 
+export interface Message {
+  id: number
+  clientId: number
+  sender: "you" | "patient"
+  text: string
+  time: string
+  read: boolean
+}
+
 export interface Client {
   id: number
   name: string
@@ -220,6 +229,15 @@ const defaultUserProfile: UserProfile = {
 }
 
 // Default Sessions (freeform - just date based, no time slots)
+const defaultMessages: Message[] = [
+  { id: 1, clientId: 1, sender: "patient", text: "Hi Dr. Chen, I have questions about tomorrow's session.", time: "9:15 AM", read: false },
+  { id: 2, clientId: 1, sender: "you", text: "Sure, let's review your goals and plan a quick warm-up.", time: "9:18 AM", read: true },
+  { id: 3, clientId: 2, sender: "patient", text: "Can we move our appointment to the afternoon?", time: "11:02 AM", read: false },
+  { id: 4, clientId: 2, sender: "you", text: "Yes, I have openings after 2:00 PM. Which time works best?", time: "11:05 AM", read: true },
+  { id: 5, clientId: 3, sender: "patient", text: "I finished the speech exercises you sent.", time: "8:30 AM", read: false },
+  { id: 6, clientId: 3, sender: "you", text: "Great work! I'll add a new activity for next time.", time: "8:35 AM", read: true },
+]
+
 const defaultSessions: Session[] = [
   {
     id: 1,
@@ -416,6 +434,13 @@ interface DataContextType {
   getPastSessions: () => Session[]
   getTodaysSessions: () => Session[]
 
+  // Messages
+  messages: Message[]
+  addMessage: (message: Omit<Message, "id" | "time" | "read">) => void
+  markMessagesRead: (clientId: number) => void
+  getMessagesForClient: (clientId: number) => Message[]
+  getUnreadCountForClient: (clientId: number) => number
+
   // User Profile
   userProfile: UserProfile
   updateUserProfile: (updates: Partial<UserProfile>) => void
@@ -432,6 +457,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tests, setTests] = useState<Test[]>(defaultTests)
   const [clients, setClients] = useState<Client[]>(defaultClients)
   const [sessions, setSessions] = useState<Session[]>(defaultSessions)
+  const [messages, setMessages] = useState<Message[]>(defaultMessages)
   const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
@@ -459,12 +485,48 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setSessions(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s))
   }
 
+  const addMessage = (message: Omit<Message, "id" | "time" | "read">) => {
+    setMessages(prev => [
+      ...prev,
+      {
+        ...message,
+        id: Date.now(),
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        read: message.sender === "you",
+      },
+    ])
+  }
+
+  const markMessagesRead = (clientId: number) => {
+    setMessages(prev => {
+      let needsUpdate = false
+      const updated = prev.map((message) => {
+        if (message.clientId === clientId && !message.read && message.sender === "patient") {
+          needsUpdate = true
+          return { ...message, read: true }
+        }
+        return message
+      })
+      return needsUpdate ? updated : prev
+    })
+  }
+
   const getSessionsForDate = (date: string) => {
     return sessions.filter(s => s.date === date)
   }
 
   const getSessionsForClient = (clientId: number) => {
     return sessions.filter(s => s.clientId === clientId)
+  }
+
+  const getMessagesForClient = (clientId: number) => {
+    return messages
+      .filter(message => message.clientId === clientId)
+      .sort((a, b) => a.id - b.id)
+  }
+
+  const getUnreadCountForClient = (clientId: number) => {
+    return messages.filter(message => message.clientId === clientId && !message.read && message.sender === "patient").length
   }
 
   const today = "2026-04-14"
@@ -520,6 +582,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
         getUpcomingSessions,
         getPastSessions,
         getTodaysSessions,
+        messages,
+        addMessage,
+        markMessagesRead,
+        getMessagesForClient,
+        getUnreadCountForClient,
         userProfile,
         updateUserProfile,
         isLoggedIn,
