@@ -55,7 +55,7 @@ export function LoginView() {
         {/* Login Card */}
         <Card className="border-border/50">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-2xl">Welcome to Clarity</CardTitle>
+            <CardTitle className="text-2xl">Welcome to PatientPortal</CardTitle>
             <CardDescription>
               Sign in to access your scheduling dashboard
             </CardDescription>
@@ -150,7 +150,7 @@ export function LoginView() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-xs text-muted-foreground">
-          <p>© 2026 Clarity Scheduling. All rights reserved.</p>
+          <p>© 2026 PatientPortal. All rights reserved.</p>
         </div>
       </div>
     </div>

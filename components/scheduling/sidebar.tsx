@@ -159,7 +159,7 @@ export function Sidebar({ currentView, onNavigate }: SidebarProps) {
           </svg>
         </div>
         <span className="text-xl font-semibold text-sidebar-foreground">
-          Clarity
+          PatientPortal
         </span>
       </div>
 

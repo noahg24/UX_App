@@ -210,7 +210,7 @@ const defaultClients: Client[] = [
 const defaultUserProfile: UserProfile = {
   firstName: "Victor",
   lastName: "Chen",
-  email: "victor.chen@clarity.health",
+  email: "victor.chen@patientportal.health",
   phone: "(555) 123-4567",
   specialty: "speech",
   bio: "Certified Speech-Language Pathologist with 10+ years of experience working with children. Specialized in articulation disorders and language development.",

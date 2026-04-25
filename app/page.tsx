@@ -20,6 +20,7 @@ function SchedulingAppContent() {
   const { isLoggedIn } = useData()
   const [currentView, setCurrentView] = useState<ViewType>("dashboard")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [selectedMessageClientId, setSelectedMessageClientId] = useState<number | null>(null)
 
   if (!isLoggedIn) {
     return <LoginView />
@@ -34,9 +35,16 @@ function SchedulingAppContent() {
       case "clients":
         return <ClientsView onNavigate={setCurrentView} />
       case "sessions":
-        return <SessionsView />
+        return (
+          <SessionsView
+            onMessageClient={(clientId) => {
+              setSelectedMessageClientId(clientId)
+              setCurrentView("messages")
+            }}
+          />
+        )
       case "messages":
-        return <MessagesView />
+        return <MessagesView initialClientId={selectedMessageClientId ?? undefined} />
       case "settings":
         return <SettingsView />
       case "database":

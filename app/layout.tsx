@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Clarity | Smart Scheduling for Care Professionals',
+  title: 'PatientPortal | Smart Scheduling for Care Professionals',
   description: 'Effortless scheduling for teachers, therapists, and specialists managing diverse student and patient needs.',
   generator: 'v0.app',
   icons: {

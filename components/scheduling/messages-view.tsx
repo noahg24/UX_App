@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog"
 import { useData, type Client, type Message } from "@/lib/data-context"
 
-export function MessagesView() {
+export function MessagesView({ initialClientId }: { initialClientId?: number }) {
   const {
     clients,
     getMessagesForClient,
@@ -48,6 +48,13 @@ export function MessagesView() {
     () => selectedClient ? getUnreadCountForClient(selectedClient.id) : 0,
     [getUnreadCountForClient, selectedClient]
   )
+
+  useEffect(() => {
+    if (initialClientId !== undefined) {
+      setSelectedClientId(initialClientId)
+      setIsConversationOpen(true)
+    }
+  }, [initialClientId])
 
   useEffect(() => {
     if (selectedClientId && isConversationOpen && selectedClientUnread > 0) {

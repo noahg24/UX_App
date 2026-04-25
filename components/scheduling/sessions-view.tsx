@@ -19,7 +19,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useData, type Session } from "@/lib/data-context"
 
-export function SessionsView() {
+interface SessionsViewProps {
+  onMessageClient: (clientId: number) => void
+}
+
+export function SessionsView({ onMessageClient }: SessionsViewProps) {
   const { getUpcomingSessions, getPastSessions, updateSession, tests, addSession, clients } = useData()
   const upcomingSessions = getUpcomingSessions()
   const pastSessions = getPastSessions()
@@ -71,6 +75,12 @@ export function SessionsView() {
 
   const handleCompleteSession = (sessionId: number) => {
     updateSession(sessionId, { status: "completed" })
+  }
+
+  const handleStatusChange = (status: Session["status"]) => {
+    if (!selectedSession) return
+    setSelectedSession((prev) => (prev ? { ...prev, status } : prev))
+    updateSession(selectedSession.id, { status })
   }
 
   const handleSaveSession = () => {
@@ -200,6 +210,7 @@ export function SessionsView() {
                 formatDate={formatDateLabel}
                 showActions
                 onCompleteSession={handleCompleteSession}
+                onMessageClient={onMessageClient}
               />
             ))
           )}
@@ -266,20 +277,22 @@ export function SessionsView() {
                     <span className="text-xs text-muted-foreground">Duration</span>
                     <p className="text-sm font-medium text-foreground">{selectedSession.duration}</p>
                   </div>
-                  <div>
-                    <span className="text-xs text-muted-foreground">Status</span>
-                    <Badge
-                      variant="secondary"
-                      className={`mt-1 text-xs ${
-                        selectedSession.status === "completed"
-                          ? "bg-accent/10 text-accent"
-                          : selectedSession.status === "confirmed"
-                          ? "bg-chart-2/10 text-chart-2"
-                          : "bg-muted text-muted-foreground"
-                      }`}
+                  <div className="col-span-2 sm:col-span-1">
+                    <Label htmlFor="session-status">Status</Label>
+                    <Select
+                      value={selectedSession.status}
+                      onValueChange={(value) => handleStatusChange(value as Session["status"])}
                     >
-                      {selectedSession.status}
-                    </Badge>
+                      <SelectTrigger id="session-status" className="mt-1 w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="confirmed">Confirmed</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="col-span-2">
                     <span className="text-xs text-muted-foreground">Address</span>
@@ -520,12 +533,14 @@ function SessionCard({
   formatDate,
   showActions = false,
   onCompleteSession,
+  onMessageClient,
 }: {
   session: Session
   onClick: () => void
   formatDate: (date: string) => string
   showActions?: boolean
   onCompleteSession?: (sessionId: number) => void
+  onMessageClient?: (clientId: number) => void
 }) {
   return (
     <Card
@@ -591,6 +606,17 @@ function SessionCard({
             >
               <VideoIcon className="mr-1.5 h-3.5 w-3.5 sm:mr-2 sm:h-4 sm:w-4" />
               Video
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 text-xs sm:text-sm"
+              onClick={(e) => {
+                e.stopPropagation()
+                onMessageClient?.(session.clientId)
+              }}
+            >
+              Message
             </Button>
             <Button
               size="sm"
