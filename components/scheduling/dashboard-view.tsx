@@ -30,10 +30,25 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ onNavigate }: DashboardViewProps) {
-  const { getTodaysSessions, getPastSessions, clients, addSession, tests, sessions, userProfile } = useData()
+  const { getTodaysSessions, getPastSessions, clients, addSession, tests, sessions, messages, userProfile } = useData()
   const todaySessions = getTodaysSessions()
   const pastSessions = getPastSessions()
   
+  const unreadMessages = messages.filter(message => message.sender === "patient" && !message.read)
+  const unreadConversations = clients
+    .map((client) => {
+      const clientUnreadMessages = unreadMessages.filter((message) => message.clientId === client.id)
+      if (clientUnreadMessages.length === 0) return null
+      const latestMessage = clientUnreadMessages.sort((a, b) => a.id - b.id).at(-1)
+      return {
+        client,
+        unreadCount: clientUnreadMessages.length,
+        latestMessage,
+      }
+    })
+    .filter((item): item is { client: typeof clients[number]; unreadCount: number; latestMessage: { id: number; text: string } } => item !== null)
+    .sort((a, b) => b.unreadCount - a.unreadCount)
+
   // Calculate current week completion rate
   const getCurrentWeekCompletionRate = () => {
     const today = new Date("2026-04-14") // Using the same date as in data-context
@@ -92,13 +107,6 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
     phone: "",
     email: "",
   })
-
-  const stats = [
-    { label: "Today", value: String(todaySessions.length), sublabel: "sessions" },
-    { label: "Clients", value: String(clients.filter(c => c.status === "active").length), sublabel: "active" },
-    { label: "Hours", value: "32", sublabel: "this week" },
-    { label: "Rate", value: getCurrentWeekCompletionRate(), sublabel: "completion" },
-  ]
 
   const recentNotes = pastSessions.slice(0, 3).map(s => ({
     id: s.id,
@@ -232,25 +240,6 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
         </Button>
       </div>
 
-      {/* Stats Grid - Mobile optimized */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="border-border/50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="text-xs font-medium text-muted-foreground">
-                {stat.label}
-              </div>
-              <div className="mt-1 flex items-baseline gap-1">
-                <span className="text-xl font-semibold text-foreground sm:text-2xl">
-                  {stat.value}
-                </span>
-                <span className="text-xs text-accent">{stat.sublabel}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Upcoming Sessions */}
         <Card className="border-border/50 lg:col-span-2">
@@ -360,6 +349,52 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-border/50">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-base font-semibold sm:text-lg">Unread Messages</CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-accent hover:text-accent/80"
+            onClick={() => onNavigate("messages")}
+          >
+            View all
+            <ChevronRightIcon className="ml-1 h-4 w-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {unreadConversations.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No unread messages
+            </div>
+          ) : (
+            unreadConversations.map(({ client, unreadCount, latestMessage }) => (
+              <button
+                key={client.id}
+                onClick={() => onNavigate("messages")}
+                className="flex w-full items-start gap-3 rounded-lg border border-border/50 p-3 text-left transition-colors hover:border-accent/50 hover:bg-muted/50"
+              >
+                <Avatar className="h-10 w-10 shrink-0">
+                  <AvatarImage src={client.avatar} alt={client.name} />
+                  <AvatarFallback>{client.name.split(" ").map((part) => part[0]).join("")}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium text-foreground text-sm truncate">{client.name}</p>
+                    <span className="rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
+                      {unreadCount}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2 sm:text-sm">
+                    {latestMessage?.text}
+                  </p>
+                </div>
+              </button>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       {/* Session Detail Dialog */}
       <Dialog open={!!selectedSession} onOpenChange={() => setSelectedSession(null)}>

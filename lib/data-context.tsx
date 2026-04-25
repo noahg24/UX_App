@@ -531,11 +531,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const today = "2026-04-14"
 
+  const parseTimeString = (time: string) => {
+    const [timePart, period] = time.split(" ")
+    const [hourStr, minuteStr] = timePart.split(":")
+    let hour = Number(hourStr)
+    const minute = Number(minuteStr)
+
+    if (period === "PM" && hour < 12) {
+      hour += 12
+    }
+    if (period === "AM" && hour === 12) {
+      hour = 0
+    }
+
+    return hour * 60 + minute
+  }
+
+  const compareSessionTimes = (a: Session, b: Session) => {
+    return parseTimeString(a.time) - parseTimeString(b.time)
+  }
+
   const getUpcomingSessions = () => {
     return sessions.filter(s => s.date >= today && s.status !== "completed")
       .sort((a, b) => {
         if (a.date !== b.date) return a.date.localeCompare(b.date)
-        return a.time.localeCompare(b.time)
+        return compareSessionTimes(a, b)
       })
   }
 
@@ -546,7 +566,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const getTodaysSessions = () => {
     return sessions.filter(s => s.date === today)
-      .sort((a, b) => a.time.localeCompare(b.time))
+      .sort(compareSessionTimes)
   }
 
   const updateUserProfile = (updates: Partial<UserProfile>) => {
