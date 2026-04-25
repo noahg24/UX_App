@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,7 @@ import { useData } from "@/lib/data-context"
 import { useToast } from "@/hooks/use-toast"
 
 export function SettingsView() {
-  const { userProfile, updateUserProfile } = useData()
+  const { userProfile, updateUserProfile, logout } = useData()
   const { toast } = useToast()
 
   // Local state for form fields
@@ -37,6 +37,8 @@ export function SettingsView() {
     endTime: userProfile.endTime,
     bufferTime: userProfile.bufferTime,
   })
+  const [selectedAvatar, setSelectedAvatar] = useState(userProfile.avatar)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const [notifications, setNotifications] = useState(userProfile.notifications)
 
@@ -56,6 +58,7 @@ export function SettingsView() {
       bufferTime: userProfile.bufferTime,
     })
     setNotifications(userProfile.notifications)
+    setSelectedAvatar(userProfile.avatar)
   }, [userProfile])
 
   // Scroll to top when component mounts
@@ -66,12 +69,50 @@ export function SettingsView() {
   const handleSaveProfile = () => {
     updateUserProfile({
       ...profileData,
+      avatar: selectedAvatar,
       notifications,
     })
     toast({
       title: "Profile Updated",
       description: "Your profile changes have been saved successfully.",
     })
+  }
+
+  const handleChoosePhoto = () => {
+    toast({
+      title: "Requesting access",
+      description: "Please select a photo to update your profile image.",
+    })
+    fileInputRef.current?.click()
+  }
+
+  const handlePhotoSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file format",
+        description: "Please choose an image file (JPG, PNG, GIF).",
+      })
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please choose a photo smaller than 2MB.",
+      })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setSelectedAvatar(reader.result)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleSavePreferences = () => {
@@ -91,11 +132,16 @@ export function SettingsView() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Settings</h1>
-        <p className="mt-1 text-muted-foreground">
-          Manage your account and preferences
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground sm:text-3xl">Settings</h1>
+          <p className="mt-1 text-muted-foreground">
+            Manage your account and preferences
+          </p>
+        </div>
+        <Button variant="outline" onClick={logout} className="w-full sm:w-auto">
+          Logout
+        </Button>
       </div>
 
       {/* Profile Section */}
@@ -108,15 +154,22 @@ export function SettingsView() {
           {/* Avatar */}
           <div className="flex items-center gap-4">
             <Avatar className="h-20 w-20 border-2 border-border">
-              <AvatarImage src={userProfile.avatar} alt={`${userProfile.firstName} ${userProfile.lastName}`} />
+              <AvatarImage src={selectedAvatar} alt={`${userProfile.firstName} ${userProfile.lastName}`} />
               <AvatarFallback className="text-lg">{userProfile.firstName[0]}{userProfile.lastName[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <Button variant="outline" size="sm">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoSelected}
+              />
+              <Button variant="outline" size="sm" onClick={handleChoosePhoto}>
                 Change Photo
               </Button>
               <p className="mt-1 text-xs text-muted-foreground">
-                JPG, PNG or GIF. Max size 2MB.
+                Tap to allow access to your device photos and choose an image.
               </p>
             </div>
           </div>

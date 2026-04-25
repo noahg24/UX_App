@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
 // Types
 export interface Activity {
@@ -458,7 +458,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [clients, setClients] = useState<Client[]>(defaultClients)
   const [sessions, setSessions] = useState<Session[]>(defaultSessions)
   const [messages, setMessages] = useState<Message[]>(defaultMessages)
-  const [userProfile, setUserProfile] = useState<UserProfile>(defaultUserProfile)
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    if (typeof window === "undefined") return defaultUserProfile
+    try {
+      const stored = window.localStorage.getItem("patientPortalUserProfile")
+      return stored ? JSON.parse(stored) as UserProfile : defaultUserProfile
+    } catch {
+      return defaultUserProfile
+    }
+  })
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
   const addTest = (test: Omit<Test, "id">) => {
@@ -584,6 +592,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setIsLoggedIn(false)
   }
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("patientPortalUserProfile", JSON.stringify(userProfile))
+    } catch {
+      // ignore localStorage errors
+    }
+  }, [userProfile])
 
   return (
     <DataContext.Provider
