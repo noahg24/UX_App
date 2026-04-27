@@ -625,20 +625,26 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             <div className="space-y-2">
               <Label>Tests / Activities</Label>
               <div className="max-h-32 overflow-y-auto rounded-lg border border-border p-2 space-y-1">
-                {tests.slice(0, 10).map((test) => (
-                  <label
-                    key={test.id}
-                    className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-muted/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={newSession.activities.includes(test.name)}
-                      onChange={() => toggleSessionActivity(test.name)}
-                      className="rounded border-border"
-                    />
-                    <span className="text-sm text-foreground">{test.name}</span>
-                  </label>
-                ))}
+                {tests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-2 py-3">
+                    No saved tests or activities yet. Add items in Manage Activities.
+                  </p>
+                ) : (
+                  tests.map((test) => (
+                    <label
+                      key={test.id}
+                      className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-muted/50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={newSession.activities.includes(test.name)}
+                        onChange={() => toggleSessionActivity(test.name)}
+                        className="rounded border-border"
+                      />
+                      <span className="text-sm text-foreground">{test.name}</span>
+                    </label>
+                  ))
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 {newSession.activities.length} selected

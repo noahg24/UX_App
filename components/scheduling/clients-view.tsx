@@ -30,12 +30,14 @@ interface ClientsViewProps {
 }
 
 export function ClientsView({ onNavigate }: ClientsViewProps) {
-  const { clients, addClient, addSession, getSessionsForClient, tests } = useData()
+  const { clients, addClient, addSession, getSessionsForClient, tests, addTest, deleteTest } = useData()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
+  const [isManageActivitiesOpen, setIsManageActivitiesOpen] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [showScheduleSession, setShowScheduleSession] = useState(false)
+  const [newActivityName, setNewActivityName] = useState("")
 
   const [newClient, setNewClient] = useState({
     firstName: "",
@@ -147,13 +149,21 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
             {clients.length} clients in your care
           </p>
         </div>
-        <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <UserPlusIcon className="mr-2 h-4 w-4" />
-              Add Client
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsManageActivitiesOpen(true)}
+          >
+            Manage Activities
+          </Button>
+          <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <UserPlusIcon className="mr-2 h-4 w-4" />
+                Add Client
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New Client</DialogTitle>
@@ -303,7 +313,73 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
             </div>
           </DialogContent>
         </Dialog>
+
+        <Dialog open={isManageActivitiesOpen} onOpenChange={setIsManageActivitiesOpen}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Manage Tests & Activities</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-activity">New Activity</Label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Input
+                    id="new-activity"
+                    placeholder="Add a new test or activity"
+                    value={newActivityName}
+                    onChange={(e) => setNewActivityName(e.target.value)}
+                  />
+                  <Button
+                    className="whitespace-nowrap bg-accent text-accent-foreground hover:bg-accent/90"
+                    onClick={() => {
+                      const trimmed = newActivityName.trim()
+                      if (!trimmed) return
+                      addTest({ name: trimmed, category: "Custom" })
+                      setNewActivityName("")
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Saved tests and activities</p>
+                <div className="space-y-2 rounded-lg border border-border p-3">
+                  {tests.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No activities saved yet.</p>
+                  ) : (
+                    tests.map((test) => (
+                      <div
+                        key={test.id}
+                        className="flex items-center justify-between gap-3 rounded-md border border-border/50 bg-muted/50 p-3"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-foreground">{test.name}</p>
+                          <p className="text-xs text-muted-foreground">{test.category}</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteTest(test.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+              <Button
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+                onClick={() => setIsManageActivitiesOpen(false)}
+              >
+                Done
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
+    </div>
 
       {/* Search */}
       <div className="relative">
@@ -559,20 +635,26 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
             <div className="space-y-2">
               <Label>Tests / Activities</Label>
               <div className="max-h-32 overflow-y-auto rounded-lg border border-border p-2 space-y-1">
-                {tests.slice(0, 10).map((test) => (
-                  <label
-                    key={test.id}
-                    className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-muted/50"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={newSession.activities.includes(test.name)}
-                      onChange={() => toggleActivity(test.name)}
-                      className="rounded border-border"
-                    />
-                    <span className="text-sm text-foreground">{test.name}</span>
-                  </label>
-                ))}
+                {tests.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-2 py-3">
+                    No saved tests or activities yet. Add items in Manage Activities.
+                  </p>
+                ) : (
+                  tests.map((test) => (
+                    <label
+                      key={test.id}
+                      className="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-muted/50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={newSession.activities.includes(test.name)}
+                        onChange={() => toggleActivity(test.name)}
+                        className="rounded border-border"
+                      />
+                      <span className="text-sm text-foreground">{test.name}</span>
+                    </label>
+                  ))
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 {newSession.activities.length} selected
