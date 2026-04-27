@@ -53,6 +53,7 @@ export interface Client {
   guardian: string
   phone: string
   email: string
+  address: string
   status: "active" | "on-hold" | "discharged"
 }
 
@@ -127,6 +128,7 @@ const defaultClients: Client[] = [
     guardian: "Michael Thompson",
     phone: "(555) 123-4567",
     email: "m.thompson@email.com",
+    address: "Tampa Bay Elementary, 1200 Palm Ave, Tampa, FL 33602",
     status: "active",
   },
   {
@@ -142,6 +144,7 @@ const defaultClients: Client[] = [
     guardian: "Maria Martinez",
     phone: "(555) 234-5678",
     email: "m.martinez@email.com",
+    address: "Sunshine Learning Center, 455 Oak St, Tampa, FL 33603",
     status: "active",
   },
   {
@@ -157,6 +160,7 @@ const defaultClients: Client[] = [
     guardian: "Wei Chen",
     phone: "(555) 345-6789",
     email: "w.chen@email.com",
+    address: "Westshore Pediatric Clinic, 2201 Westshore Blvd, Tampa, FL 33607",
     status: "active",
   },
   {
@@ -172,6 +176,7 @@ const defaultClients: Client[] = [
     guardian: "Sarah Williams",
     phone: "(555) 456-7890",
     email: "s.williams@email.com",
+    address: "North Tampa Therapy Hub, 7802 Fletcher Ave, Tampa, FL 33637",
     status: "active",
   },
   {
@@ -187,6 +192,7 @@ const defaultClients: Client[] = [
     guardian: "Robert Johnson",
     phone: "(555) 567-8901",
     email: "r.johnson@email.com",
+    address: "Harborview Elementary, 310 Bayshore Dr, Tampa, FL 33606",
     status: "active",
   },
   {
@@ -202,6 +208,7 @@ const defaultClients: Client[] = [
     guardian: "Jennifer Brown",
     phone: "(555) 678-9012",
     email: "j.brown@email.com",
+    address: "South Tampa Voice Center, 1508 S Dale Mabry Hwy, Tampa, FL 33629",
     status: "on-hold",
   },
 ]

@@ -30,7 +30,7 @@ interface ClientsViewProps {
 }
 
 export function ClientsView({ onNavigate }: ClientsViewProps) {
-  const { clients, addClient, addSession, getSessionsForClient, tests, addTest, deleteTest } = useData()
+  const { clients, addClient, updateClient, addSession, getSessionsForClient, tests, addTest, deleteTest } = useData()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [isAddClientOpen, setIsAddClientOpen] = useState(false)
@@ -38,6 +38,19 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
   const [showHistory, setShowHistory] = useState(false)
   const [showScheduleSession, setShowScheduleSession] = useState(false)
   const [newActivityName, setNewActivityName] = useState("")
+  const [isEditingClient, setIsEditingClient] = useState(false)
+
+  const [editClient, setEditClient] = useState({
+    name: "",
+    age: "",
+    diagnosis: "",
+    sessionsPerWeek: "2",
+    guardian: "",
+    phone: "",
+    email: "",
+    address: "", //Check later
+    notes: "",
+  })
 
   const [newClient, setNewClient] = useState({
     firstName: "",
@@ -48,6 +61,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
     guardian: "",
     phone: "",
     email: "",
+    address: "",
     notes: "",
   })
 
@@ -79,6 +93,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
         guardian: newClient.guardian || "",
         phone: newClient.phone || "",
         email: newClient.email || "",
+        address: newClient.address || "",
         status: "active",
       })
       setNewClient({
@@ -90,6 +105,7 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
         guardian: "",
         phone: "",
         email: "",
+        address: "",
         notes: "",
       })
       setIsAddClientOpen(false)
@@ -138,6 +154,45 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
   }
 
   const clientHistory = selectedClient ? getSessionsForClient(selectedClient.id) : []
+
+  // Double Check
+  const startEditingClient = () => {
+    if (!selectedClient) return
+
+    setEditClient({
+      name: selectedClient.name,
+      age: String(selectedClient.age),
+      diagnosis: selectedClient.diagnosis,
+      sessionsPerWeek: String(selectedClient.sessionsPerWeek),
+      guardian: selectedClient.guardian,
+      phone: selectedClient.phone,
+      email: selectedClient.email,
+      address: selectedClient.address,
+      notes: selectedClient.notes,
+    })
+
+    setIsEditingClient(true)
+  }
+
+  const handleSaveClientEdits = () => {
+    if (!selectedClient) return
+
+    const updates = {
+      name: editClient.name,
+      age: Number(editClient.age) || 0,
+      diagnosis: editClient.diagnosis || "Not specified",
+      sessionsPerWeek: Number(editClient.sessionsPerWeek) || 2,
+      guardian: editClient.guardian,
+      phone: editClient.phone,
+      email: editClient.email,
+      address: editClient.address,
+      notes: editClient.notes,
+    }
+
+    updateClient(selectedClient.id, updates)
+    setSelectedClient({ ...selectedClient, ...updates })
+    setIsEditingClient(false)
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -285,6 +340,17 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
                         value={newClient.email}
                         onChange={(e) =>
                           setNewClient({ ...newClient, email: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="client-address">Address</Label>
+                      <Input
+                        id="client-address"
+                        placeholder="Client address or primary service location"
+                        value={newClient.address}
+                        onChange={(e) =>
+                          setNewClient({ ...newClient, address: e.target.value })
                         }
                       />
                     </div>
@@ -528,6 +594,12 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
                     </div>
                   </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="text-foreground">
+                    {selectedClient.address || "No address provided"}
+                  </span>
+                </div>
 
                 {/* Actions */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
@@ -544,10 +616,181 @@ export function ClientsView({ onNavigate }: ClientsViewProps) {
                   >
                     View History
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={startEditingClient}
+                  >
+                    Edit
+                  </Button>
                 </div>
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Client Dialog */}
+      <Dialog open={isEditingClient} onOpenChange={setIsEditingClient}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Client</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editClient.name}
+                onChange={(e) =>
+                  setEditClient({ ...editClient, name: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-age">Age</Label>
+                <Input
+                  id="edit-age"
+                  type="number"
+                  value={editClient.age}
+                  onChange={(e) =>
+                    setEditClient({ ...editClient, age: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-diagnosis">Diagnosis</Label>
+                <Select
+                  value={editClient.diagnosis}
+                  onValueChange={(value) =>
+                    setEditClient({ ...editClient, diagnosis: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select diagnosis" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Articulation Disorder">Articulation Disorder</SelectItem>
+                    <SelectItem value="Language Delay">Language Delay</SelectItem>
+                    <SelectItem value="Stuttering">Stuttering</SelectItem>
+                    <SelectItem value="Apraxia of Speech">Apraxia of Speech</SelectItem>
+                    <SelectItem value="Phonological Disorder">Phonological Disorder</SelectItem>
+                    <SelectItem value="Voice Disorder">Voice Disorder</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-sessions">Sessions per Week</Label>
+              <Select
+                value={editClient.sessionsPerWeek}
+                onValueChange={(value) =>
+                  setEditClient({ ...editClient, sessionsPerWeek: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 session</SelectItem>
+                  <SelectItem value="2">2 sessions</SelectItem>
+                  <SelectItem value="3">3 sessions</SelectItem>
+                  <SelectItem value="4">4 sessions</SelectItem>
+                  <SelectItem value="5">5 sessions</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <h4 className="mb-3 text-sm font-medium text-foreground">
+                Guardian Information
+              </h4>
+
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-guardian">Guardian Name</Label>
+                  <Input
+                    id="edit-guardian"
+                    value={editClient.guardian}
+                    onChange={(e) =>
+                      setEditClient({ ...editClient, guardian: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-phone">Phone</Label>
+                    <Input
+                      id="edit-phone"
+                      value={editClient.phone}
+                      onChange={(e) =>
+                        setEditClient({ ...editClient, phone: e.target.value })
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-email">Email</Label>
+                    <Input
+                      id="edit-email"
+                      type="email"
+                      value={editClient.email}
+                      onChange={(e) =>
+                        setEditClient({ ...editClient, email: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-address">Address</Label>
+                    <Input
+                      id="edit-address"
+                      placeholder="Client address or primary service location"
+                      value={editClient.address}
+                      onChange={(e) =>
+                        setEditClient({ ...editClient, address: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Notes</Label>
+              <Textarea
+                id="edit-notes"
+                value={editClient.notes}
+                onChange={(e) =>
+                  setEditClient({ ...editClient, notes: e.target.value })
+                }
+                rows={3}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setIsEditingClient(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-accent text-accent-foreground hover:bg-accent/90"
+                onClick={handleSaveClientEdits}
+                disabled={!editClient.name}
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
