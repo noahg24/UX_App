@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import type { ViewType } from "@/app/page"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { useState } from "react"
 import { useData } from "@/lib/data-context"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface MobileNavProps {
   currentView: ViewType
@@ -21,6 +28,7 @@ export function MobileNav({
   setSidebarOpen,
 }: MobileNavProps) {
   const { userProfile } = useData()
+  const [isPageInfoOpen, setIsPageInfoOpen] = useState(false)
 
   const viewTitles: Record<ViewType, string> = {
     dashboard: "Dashboard",
@@ -30,6 +38,29 @@ export function MobileNav({
     messages: "Messages",
     database: "Database",
     settings: "Settings",
+  }
+
+  const viewDescriptions: Record<ViewType, string> = {
+    dashboard:
+      "View today's schedule, upcoming meetings, recent messages, and quick actions.",
+      
+    calendar:
+      "Manage appointments, view sessions by day/week/month, add events, and optimize your schedule.",
+      
+    clients:
+      "Browse all clients, search records, manage activities, and add new clients.",
+      
+    sessions:
+      "Review session notes, progress logs, completed activities, and treatment history.",
+      
+    messages:
+      "Send and receive messages with coworkers, families, or team members.",
+      
+    database:
+      "Manage structured data such as clients, locations, tests, and imported records.",
+      
+    settings:
+      "Update profile details, preferences, themes, notifications, and account settings.",
   }
 
   return (
@@ -56,18 +87,37 @@ export function MobileNav({
       </Sheet>
 
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-          <svg className="h-4 w-4 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-          </svg>
-        </div>
-        <span className="text-lg font-semibold text-foreground">{viewTitles[currentView]}</span>
+        <img
+          src="/PatientPortalLogo.png"
+          alt="PatientPortal logo"
+          className="h-12 w-12 rounded-lg object-contain"
+        />
+        <button
+          type="button"
+          onClick={() => setIsPageInfoOpen(true)}
+          className="text-lg font-semibold text-foreground hover:text-accent"
+        >
+          {viewTitles[currentView]}
+        </button>
       </div>
 
       <Avatar className="h-9 w-9 cursor-pointer" onClick={() => onNavigate("settings")}>
         <AvatarImage src={userProfile.avatar} alt={`${userProfile.firstName} ${userProfile.lastName}`} />
         <AvatarFallback>{userProfile.firstName[0]}{userProfile.lastName[0]}</AvatarFallback>
       </Avatar>
+
+      <Dialog open={isPageInfoOpen} onOpenChange={setIsPageInfoOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{viewTitles[currentView]}</DialogTitle>
+          </DialogHeader>
+          <div className="rounded-lg border border-border bg-muted/50 p-4">
+            <p className="text-sm text-muted-foreground leading-6">
+              {viewDescriptions[currentView]}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -92,11 +142,11 @@ function MobileSidebarContent({
     <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4 pt-4">
       {/* Logo */}
       <div className="flex h-12 shrink-0 items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-          <svg className="h-5 w-5 text-accent-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-          </svg>
-        </div>
+        <img
+          src="/PatientPortalLogo.png"
+          alt="PatientPortal logo"
+          className="h-12 w-12 rounded-lg object-contain"
+        />
         <span className="text-xl font-semibold text-sidebar-foreground">PatientPortal</span>
       </div>
 
